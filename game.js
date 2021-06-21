@@ -9,8 +9,27 @@ function initGame() {
     createBoardDivs();
     const body = document.querySelector("body");
     body.addEventListener('keydown', movePlayer);
+    body.addEventListener('keypress', shoot);
     draw();
 }
+
+
+function shoot(e) {
+    if (e.keyCode === 32) {
+        let col = player_pos;
+        row = BOARD_HEIGHT - 2;
+        bulletPos = document.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
+        bulletPos.classList.add("bullet");
+        for (let i = 0; i < BOARD_HEIGHT; i++) {
+            setTimeout(function(){
+                bulletPos.classList.toggle("bullet");
+                bulletPos = document.querySelector(`.square[data-row="${row-i}"][data-col="${col}"]`);
+                bulletPos.classList.toggle("bullet");
+            }, 100*i);
+        }
+    }
+}
+
 
 // bal = 37, jobb = 39
 function movePlayer(e){
