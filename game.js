@@ -13,8 +13,9 @@ let lastShot = new Date();
 let direction = 1;
 let gameOver = false;
 let enemyTimer = null;
-let level = 7;
+let level = 0;
 let score = 0;
+let lives = 3;
 
 
 function initGame() {
@@ -22,8 +23,37 @@ function initGame() {
     const body = document.querySelector("body");
     body.addEventListener('keydown', movePlayer);
     body.addEventListener('keypress', shoot);
+    livesDisplay = document.getElementById('lives');
+    livesDisplay.innerHTML = `lives: ${lives}`;
+    startLevel();
+}
+
+function startLevel() {
+    clearInterval(enemyTimer);
+    enemyCells = document.querySelectorAll(".enemy")
+    enemyCells.forEach((cell)=>{
+        cell.classList.remove("enemy");
+        for (cl of cell.classList){
+            if (cl.includes("type")){
+                cell.classList.remove(cl);
+            }
+        }
+    })
+    enemies.splice(0, enemies.length);
+    levelDisplay = document.getElementById('level');
+    levelDisplay.innerHTML = `level: ${level}`;
     createEnemies();
-    initEnemies(INITIAL_SPEED);
+    if (INITIAL_SPEED - level * 100 > 500) {
+        
+        initEnemies(INITIAL_SPEED - level * 100);
+        console.log("wtf");
+    } else if (INITIAL_SPEED - 600 - (level - 6) * 10 > MAX_SPEED) {
+        initEnemies(INITIAL_SPEED - 600 - (level - 6) * 10);
+        console.log(INITIAL_SPEED - 600 - (level - 6) * 10);
+    } else {
+        initEnemies(MAX_SPEED);
+        console.log("???")
+    }
     draw();
 }
 
@@ -43,7 +73,6 @@ function createEnemies() {
 function addEnemy(x, y, type) {
     let newEnemy = { x: x, y: y, type: type };
     enemies.push(newEnemy);
-    //let enemyTimer = setInterval(()=> {updateEnemy(newEnemy)}, 2000);
 }
 
 
@@ -110,7 +139,15 @@ function updateEnemies() {
             }
             direction = (distanceFromRight === 0) ? -1 : 1;
             if (distanceFromBottom - 1 === 0) {
-                lose();
+                lives--;
+                livesDisplay = document.getElementById('lives');
+                livesDisplay.innerHTML = `lives: ${lives}`;
+
+                if (lives === 0){ 
+                    lose();
+                } else {
+                    startLevel();
+                }
             }
         }
         if (!gameOver) { drawEnemies(); }
@@ -170,8 +207,7 @@ function enemyAt(x, y) {
         scoreDisplay = document.getElementById('score');
         scoreDisplay.innerHTML = `score: ${score}`;
 
-        levelDisplay = document.getElementById('level');
-        levelDisplay.innerHTML = `level: ${level}`;
+        
 
         if (enemies.length === 0) {
             win();
@@ -274,21 +310,26 @@ function lose() {
 
 
 function win() {
-    clearInterval(enemyTimer);
     setTimeout(() => { alert('Next wave is coming! Get ready! '); }, 0);
     level++;
-    createEnemies();
-    if (INITIAL_SPEED - level * 100 > 500) {
+
+    startLevel();
+
+    // clearInterval(enemyTimer);  
+    // levelDisplay = document.getElementById('level');
+    // levelDisplay.innerHTML = `level: ${level}`;
+    // createEnemies();
+    // if (INITIAL_SPEED - level * 100 > 500) {
         
-        initEnemies(INITIAL_SPEED - level * 100);
-        console.log("wtf");
-    } else if (INITIAL_SPEED - 600 - (level - 6) * 10 > MAX_SPEED) {
-        initEnemies(INITIAL_SPEED - 600 - (level - 6) * 10);
-        console.log(INITIAL_SPEED - 600 - (level - 6) * 10);
-    } else {
-        initEnemies(MAX_SPEED);
-        console.log("???")
-    }
+    //     initEnemies(INITIAL_SPEED - level * 100);
+    //     console.log("wtf");
+    // } else if (INITIAL_SPEED - 600 - (level - 6) * 10 > MAX_SPEED) {
+    //     initEnemies(INITIAL_SPEED - 600 - (level - 6) * 10);
+    //     console.log(INITIAL_SPEED - 600 - (level - 6) * 10);
+    // } else {
+    //     initEnemies(MAX_SPEED);
+    //     console.log("???")
+    // }
     
 }
 

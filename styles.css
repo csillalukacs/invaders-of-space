@@ -3,10 +3,14 @@
     width:80%;
 }
 
-#score, #level {
+#score, #level, #lives {
     width:50%;
     font-size: 2rem;
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    /* font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; */
+}
+
+#lives{
+    text-align: center;
 }
 
 #level {
@@ -20,6 +24,7 @@
     display: flex;
     flex-wrap: wrap;
     margin:auto;
+    /* background-color:black; */
 }
 
 .grid div {
