@@ -1,11 +1,14 @@
-const BOARD_WIDTH = 20;
-const BOARD_HEIGHT = 20;
-const CELL_SIZE = 30;
+const BOARD_WIDTH = 19;
+const BOARD_HEIGHT = 15;
+const CELL_SIZE = 36;
 const COOLDOWN = 1;
 
 let player_pos = Math.floor(BOARD_WIDTH / 2);
-let projectiles = [];
+const projectiles = [];
+const enemies = [];
 let lastShot = new Date();
+let enemyStep = 0;
+let direction = 1;
 
 
 function initGame() {
@@ -13,56 +16,126 @@ function initGame() {
     const body = document.querySelector("body");
     body.addEventListener('keydown', movePlayer);
     body.addEventListener('keypress', shoot);
+    createEnemies();
     draw();
+}
+
+function createEnemies() {
+    for (let i = 3; i < BOARD_WIDTH - 3; i++) {
+        for (let j = 3; j < BOARD_HEIGHT - 3; j++) {
+            if ((j + 1) % 3 !== 0) { addEnemy(i, j) }
+        }
+    }
+    let enemyTimer = setInterval(updateEnemies, 1000);
+}
+
+function getFirstEnemyX(){
+    let minX = BOARD_WIDTH;
+    for (let enemy of enemies){
+        if (enemy.x < minX){
+            minX = enemy.x;
+        }
+    }
+    return minX;
+}
+
+
+function getLastEnemyX(){
+    let maxX = 0;
+    for (let enemy of enemies){
+        if (enemy.x > maxX){
+            maxX = enemy.x;
+        }
+    }
+    return maxX;
+}
+
+
+function updateEnemies() {
+    console.log(direction);
+    const distanceFromRight = (BOARD_WIDTH - 1) - getLastEnemyX();
+    console.log(distanceFromRight);
+   // alert(`distance from right is ${distanceFromRight}`);
+    const distanceFromLeft = getFirstEnemyX();
+
+    if (direction === 1) {
+        for (let enemy of enemies) {
+            enemy.x++;
+        }
+        if (distanceFromRight === 1) {
+            direction = -1;
+        }
+    } else if (direction === -1) {
+        for (let enemy of enemies) {
+            enemy.x--;
+        }
+        if (distanceFromLeft === 1) {
+            direction = 0;
+        }
+    } else if (direction === 0) {
+        for (let enemy of enemies) {
+            enemy.y++;
+        }
+        direction = 1;
+    }
+
+
+    enemyStep++;
+
+    drawEnemies();
+}
+
+function addEnemy(x, y) {
+    let newEnemy = { x: x, y: y, step: 0 };
+    enemies.push(newEnemy);
+    //let enemyTimer = setInterval(()=> {updateEnemy(newEnemy)}, 2000);
+
 }
 
 
 function shoot(e) {
-
     if (e.keyCode === 32) {
         var currentTime = new Date();
-        if (lastShot.getTime() / 1000 + COOLDOWN < currentTime.getTime() / 1000 ) {
-            let newProjectile = { x: player_pos, y: 18 }
+        if (lastShot.getTime() / 1000 + COOLDOWN < currentTime.getTime() / 1000) {
+            let newProjectile = { x: player_pos, y: BOARD_HEIGHT - 2 }
             projectiles.push(newProjectile);
             let timer = setInterval(() => updateProjectile(newProjectile, timer), 250);
             draw();
             lastShot = new Date();
         }
     }
-
 }
 
 
 function updateProjectile(projectile, timer) {
-    console.log(projectiles)
-    if (projectile.y > 0) {
-        projectile.y--;
-    } else {
+    if (enemyAt(projectile.x, projectile.y)) {
         clearInterval(timer);
         index = projectiles.indexOf(projectile);
         projectiles.splice(index, 1);
-       
+    } else if (projectile.y > 0) {
+        projectile.y--;
     }
-
+    else {
+        clearInterval(timer);
+        index = projectiles.indexOf(projectile);
+        projectiles.splice(index, 1);
+    }
     draw();
 }
 
-// function shoot(e) {
-//     if (e.keyCode === 32) {
-//         let col = player_pos;
-//         row = BOARD_HEIGHT - 2;
-//         bulletPos = document.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
-//         bulletPos.classList.add("bullet");
-//         for (let i = 0; i < BOARD_HEIGHT; i++) {
-//             setTimeout(function(){
-//                 bulletPos.classList.toggle("bullet");
-//                 bulletPos = document.querySelector(`.square[data-row="${row-i}"][data-col="${col}"]`);
-//                 bulletPos.classList.toggle("bullet");
-//             }, 100*i);
-//         }
-//     }
-// }
 
+function enemyAt(x, y) {
+    cell = document.querySelector(`.square[data-row="${y}"][data-col="${x}"]`);
+    if (cell.classList.contains("enemy")) {
+        cell.classList.remove("enemy");
+        for (let i = 0; i < enemies.length; i++) {
+            if (enemies[i].x === x && enemies[i].y === y) {
+                enemies.splice(i, 1);
+            }
+        }
+        return true;
+    }
+}
 
 // bal = 37, jobb = 39
 function movePlayer(e) {
@@ -94,13 +167,13 @@ function createBoardDivs() {
     grid.style.width = `${CELL_SIZE * BOARD_WIDTH}px`;
     grid.style.height = `${CELL_SIZE * BOARD_HEIGHT}px`;
     let row = -1;
-    for (let i = 0; i < 400; i++) {
-        if (i % 20 === 0) {
+    for (let i = 0; i < BOARD_WIDTH * BOARD_HEIGHT; i++) {
+        if (i % BOARD_WIDTH === 0) {
             row++;
         }
         grid.insertAdjacentHTML(
             'beforeend',
-            `<div class="square" data-row="${row}" data-col="${(i % 20)}"></div>`
+            `<div class="square" data-row="${row}" data-col="${(i % BOARD_WIDTH)}"></div>`
         );
     }
 
@@ -116,9 +189,9 @@ function createBoardDivs() {
 
 function draw() {
 
-    let lastRow = document.querySelectorAll('.square[data-row="19"]');
+    let lastRow = document.querySelectorAll(`.square[data-row="${BOARD_HEIGHT - 1}"]`);
     lastRow.forEach((cell) => { cell.classList.remove("player") });
-    let playerCell = document.querySelector(`.square[data-row="19"][data-col="${player_pos}"]`);
+    let playerCell = document.querySelector(`.square[data-row="${BOARD_HEIGHT - 1}"][data-col="${player_pos}"]`);
     playerCell.classList.add("player");
 
     let cells = document.querySelectorAll(".square");
@@ -129,6 +202,19 @@ function draw() {
         projectileCell.classList.add("bullet");
     }
 
+
+
+}
+
+function drawEnemies() {
+    let enemyCells = document.querySelectorAll(".enemy");
+    enemyCells.forEach((cell) => { cell.classList.remove("enemy") });
+
+    for (enemy of enemies) {
+        
+        enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`)
+        enemyCell.classList.add("enemy");
+    }
 }
 
 
