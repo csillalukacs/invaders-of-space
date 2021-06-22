@@ -31,7 +31,8 @@
 }
 
 .enemy {
-    background-image: url('Pics/ENEMY6.jpg');
+    background-image: url('Pics/ENEMY6.jpg'); 
+    /* background-color: red; */
     background-repeat: no-repeat;
     background-position: center;
     background-size: 30px 30px;

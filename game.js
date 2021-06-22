@@ -4,9 +4,10 @@ const CELL_SIZE = 36;
 const COOLDOWN = 1;
 
 let player_pos = Math.floor(BOARD_WIDTH / 2);
-let projectiles = [];
-let enemies = [];
+const projectiles = [];
+const enemies = [];
 let lastShot = new Date();
+let enemyStep = 0;
 
 
 function initGame() {
@@ -20,18 +21,35 @@ function initGame() {
 
 function createEnemies() {
     for (let i = 3; i < BOARD_WIDTH - 3; i++) {
-        for (let j = 0; j < BOARD_HEIGHT - 3; j++) {
+        for (let j = 3; j < BOARD_HEIGHT - 3; j++) {
             if ((j + 1) % 3 !== 0) { addEnemy(i, j) }
         }
     }
+    let enemyTimer = setInterval(updateEnemies, 1000);
+
+
+}
+
+function updateEnemies() {
+    if (enemyStep % 2 === 0){
+        for (let enemy of enemies){
+            enemy.x++;
+        }
+    } else if (enemyStep % 2 === 1){
+        for (let enemy of enemies){
+            enemy.x--;
+        }
+    }
+    enemyStep++;
     
+    drawEnemies();
 }
 
 function addEnemy(x, y) {
-    let newEnemy = { x: x, y: y, step: 0};
+    let newEnemy = { x: x, y: y, step: 0 };
     enemies.push(newEnemy);
-    let enemyTimer = setInterval(()=> {updateEnemy(newEnemy)}, 2000);
-    
+    //let enemyTimer = setInterval(()=> {updateEnemy(newEnemy)}, 2000);
+
 }
 
 
@@ -66,15 +84,15 @@ function updateProjectile(projectile, timer) {
 }
 
 
-function updateEnemy(enemy){
-    if (enemy.step % 2 === 0){
+function updateEnemy(enemy) {
+    if (enemy.step % 2 === 0) {
         enemy.x--;
         enemy.step++;
-    } else if (enemy.step % 2 === 1){
+    } else if (enemy.step % 2 === 1) {
         enemy.x++;
         enemy.step++;
     }
-    draw();
+    drawEnemies();
 }
 
 
@@ -82,8 +100,8 @@ function enemyAt(x, y) {
     cell = document.querySelector(`.square[data-row="${y}"][data-col="${x}"]`);
     if (cell.classList.contains("enemy")) {
         cell.classList.remove("enemy");
-        for (let i = 0; i<enemies.length; i++){
-            if (enemies[i].x === x && enemies[i].y === y){
+        for (let i = 0; i < enemies.length; i++) {
+            if (enemies[i].x === x && enemies[i].y === y) {
                 enemies.splice(i, 1);
             }
         }
@@ -121,7 +139,7 @@ function createBoardDivs() {
     grid.style.width = `${CELL_SIZE * BOARD_WIDTH}px`;
     grid.style.height = `${CELL_SIZE * BOARD_HEIGHT}px`;
     let row = -1;
-    for (let i = 0; i < BOARD_WIDTH*BOARD_HEIGHT; i++) {
+    for (let i = 0; i < BOARD_WIDTH * BOARD_HEIGHT; i++) {
         if (i % BOARD_WIDTH === 0) {
             row++;
         }
@@ -156,14 +174,18 @@ function draw() {
         projectileCell.classList.add("bullet");
     }
 
-    let enemyCells = document.querySelectorAll(".square");
+
+
+}
+
+function drawEnemies() {
+    let enemyCells = document.querySelectorAll(".enemy");
     enemyCells.forEach((cell) => { cell.classList.remove("enemy") });
 
     for (enemy of enemies) {
         enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`)
         enemyCell.classList.add("enemy");
     }
-
 }
 
 
