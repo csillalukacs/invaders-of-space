@@ -8,6 +8,7 @@ const projectiles = [];
 const enemies = [];
 let lastShot = new Date();
 let enemyStep = 0;
+let direction = 1;
 
 
 function initGame() {
@@ -26,22 +27,61 @@ function createEnemies() {
         }
     }
     let enemyTimer = setInterval(updateEnemies, 1000);
-
-
 }
 
-function updateEnemies() {
-    if (enemyStep % 2 === 0){
-        for (let enemy of enemies){
-            enemy.x++;
-        }
-    } else if (enemyStep % 2 === 1){
-        for (let enemy of enemies){
-            enemy.x--;
+function getFirstEnemyX(){
+    let minX = BOARD_WIDTH;
+    for (let enemy of enemies){
+        if (enemy.x < minX){
+            minX = enemy.x;
         }
     }
+    return minX;
+}
+
+
+function getLastEnemyX(){
+    let maxX = 0;
+    for (let enemy of enemies){
+        if (enemy.x > maxX){
+            maxX = enemy.x;
+        }
+    }
+    return maxX;
+}
+
+
+function updateEnemies() {
+    console.log(direction);
+    const distanceFromRight = (BOARD_WIDTH - 1) - getLastEnemyX();
+    console.log(distanceFromRight);
+   // alert(`distance from right is ${distanceFromRight}`);
+    const distanceFromLeft = getFirstEnemyX();
+
+    if (direction === 1) {
+        for (let enemy of enemies) {
+            enemy.x++;
+        }
+        if (distanceFromRight === 1) {
+            direction = -1;
+        }
+    } else if (direction === -1) {
+        for (let enemy of enemies) {
+            enemy.x--;
+        }
+        if (distanceFromLeft === 1) {
+            direction = 0;
+        }
+    } else if (direction === 0) {
+        for (let enemy of enemies) {
+            enemy.y++;
+        }
+        direction = 1;
+    }
+
+
     enemyStep++;
-    
+
     drawEnemies();
 }
 
@@ -81,18 +121,6 @@ function updateProjectile(projectile, timer) {
         projectiles.splice(index, 1);
     }
     draw();
-}
-
-
-function updateEnemy(enemy) {
-    if (enemy.step % 2 === 0) {
-        enemy.x--;
-        enemy.step++;
-    } else if (enemy.step % 2 === 1) {
-        enemy.x++;
-        enemy.step++;
-    }
-    drawEnemies();
 }
 
 
@@ -183,6 +211,7 @@ function drawEnemies() {
     enemyCells.forEach((cell) => { cell.classList.remove("enemy") });
 
     for (enemy of enemies) {
+        
         enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`)
         enemyCell.classList.add("enemy");
     }
