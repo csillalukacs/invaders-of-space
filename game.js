@@ -24,10 +24,14 @@ function createEnemies() {
             if ((j + 1) % 3 !== 0) { addEnemy(i, j) }
         }
     }
+    
 }
 
 function addEnemy(x, y) {
-    enemies.push({ x: x, y: y });
+    let newEnemy = { x: x, y: y, step: 0};
+    enemies.push(newEnemy);
+    let enemyTimer = setInterval(()=> {updateEnemy(newEnemy)}, 2000);
+    
 }
 
 
@@ -61,18 +65,28 @@ function updateProjectile(projectile, timer) {
     draw();
 }
 
+
+function updateEnemy(enemy){
+    if (enemy.step % 2 === 0){
+        enemy.x--;
+        enemy.step++;
+    } else if (enemy.step % 2 === 1){
+        enemy.x++;
+        enemy.step++;
+    }
+    draw();
+}
+
+
 function enemyAt(x, y) {
     cell = document.querySelector(`.square[data-row="${y}"][data-col="${x}"]`);
-
     if (cell.classList.contains("enemy")) {
         cell.classList.remove("enemy");
-        //console.log(enemies.indexOf({x, y}));
         for (let i = 0; i<enemies.length; i++){
             if (enemies[i].x === x && enemies[i].y === y){
                 enemies.splice(i, 1);
             }
         }
-
         return true;
     }
 }
@@ -141,6 +155,9 @@ function draw() {
         projectileCell = document.querySelector(`.square[data-row="${projectile.y}"][data-col="${projectile.x}"]`)
         projectileCell.classList.add("bullet");
     }
+
+    let enemyCells = document.querySelectorAll(".square");
+    enemyCells.forEach((cell) => { cell.classList.remove("enemy") });
 
     for (enemy of enemies) {
         enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`)
