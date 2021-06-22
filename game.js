@@ -1,10 +1,11 @@
-const BOARD_WIDTH = 20;
-const BOARD_HEIGHT = 20;
-const CELL_SIZE = 30;
+const BOARD_WIDTH = 19;
+const BOARD_HEIGHT = 15;
+const CELL_SIZE = 36;
 const COOLDOWN = 1;
 
 let player_pos = Math.floor(BOARD_WIDTH / 2);
 let projectiles = [];
+let enemies = [];
 let lastShot = new Date();
 
 
@@ -13,56 +14,68 @@ function initGame() {
     const body = document.querySelector("body");
     body.addEventListener('keydown', movePlayer);
     body.addEventListener('keypress', shoot);
+    createEnemies();
     draw();
+}
+
+function createEnemies() {
+    for (let i = 3; i < BOARD_WIDTH - 3; i++) {
+        for (let j = 0; j < BOARD_HEIGHT - 3; j++) {
+            if ((j + 1) % 3 !== 0) { addEnemy(i, j) }
+        }
+    }
+}
+
+function addEnemy(x, y) {
+    enemies.push({ x: x, y: y });
 }
 
 
 function shoot(e) {
-
     if (e.keyCode === 32) {
         var currentTime = new Date();
-        if (lastShot.getTime() / 1000 + COOLDOWN < currentTime.getTime() / 1000 ) {
-            let newProjectile = { x: player_pos, y: 18 }
+        if (lastShot.getTime() / 1000 + COOLDOWN < currentTime.getTime() / 1000) {
+            let newProjectile = { x: player_pos, y: BOARD_HEIGHT - 2 }
             projectiles.push(newProjectile);
             let timer = setInterval(() => updateProjectile(newProjectile, timer), 250);
             draw();
             lastShot = new Date();
         }
     }
-
 }
 
 
 function updateProjectile(projectile, timer) {
-    console.log(projectiles)
-    if (projectile.y > 0) {
-        projectile.y--;
-    } else {
+    if (enemyAt(projectile.x, projectile.y)) {
         clearInterval(timer);
         index = projectiles.indexOf(projectile);
         projectiles.splice(index, 1);
-       
+    } else if (projectile.y > 0) {
+        projectile.y--;
     }
-
+    else {
+        clearInterval(timer);
+        index = projectiles.indexOf(projectile);
+        projectiles.splice(index, 1);
+    }
     draw();
 }
 
-// function shoot(e) {
-//     if (e.keyCode === 32) {
-//         let col = player_pos;
-//         row = BOARD_HEIGHT - 2;
-//         bulletPos = document.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
-//         bulletPos.classList.add("bullet");
-//         for (let i = 0; i < BOARD_HEIGHT; i++) {
-//             setTimeout(function(){
-//                 bulletPos.classList.toggle("bullet");
-//                 bulletPos = document.querySelector(`.square[data-row="${row-i}"][data-col="${col}"]`);
-//                 bulletPos.classList.toggle("bullet");
-//             }, 100*i);
-//         }
-//     }
-// }
+function enemyAt(x, y) {
+    cell = document.querySelector(`.square[data-row="${y}"][data-col="${x}"]`);
 
+    if (cell.classList.contains("enemy")) {
+        cell.classList.remove("enemy");
+        //console.log(enemies.indexOf({x, y}));
+        for (let i = 0; i<enemies.length; i++){
+            if (enemies[i].x === x && enemies[i].y === y){
+                enemies.splice(i, 1);
+            }
+        }
+
+        return true;
+    }
+}
 
 // bal = 37, jobb = 39
 function movePlayer(e) {
@@ -94,13 +107,13 @@ function createBoardDivs() {
     grid.style.width = `${CELL_SIZE * BOARD_WIDTH}px`;
     grid.style.height = `${CELL_SIZE * BOARD_HEIGHT}px`;
     let row = -1;
-    for (let i = 0; i < 400; i++) {
-        if (i % 20 === 0) {
+    for (let i = 0; i < BOARD_WIDTH*BOARD_HEIGHT; i++) {
+        if (i % BOARD_WIDTH === 0) {
             row++;
         }
         grid.insertAdjacentHTML(
             'beforeend',
-            `<div class="square" data-row="${row}" data-col="${(i % 20)}"></div>`
+            `<div class="square" data-row="${row}" data-col="${(i % BOARD_WIDTH)}"></div>`
         );
     }
 
@@ -116,9 +129,9 @@ function createBoardDivs() {
 
 function draw() {
 
-    let lastRow = document.querySelectorAll('.square[data-row="19"]');
+    let lastRow = document.querySelectorAll(`.square[data-row="${BOARD_HEIGHT - 1}"]`);
     lastRow.forEach((cell) => { cell.classList.remove("player") });
-    let playerCell = document.querySelector(`.square[data-row="19"][data-col="${player_pos}"]`);
+    let playerCell = document.querySelector(`.square[data-row="${BOARD_HEIGHT - 1}"][data-col="${player_pos}"]`);
     playerCell.classList.add("player");
 
     let cells = document.querySelectorAll(".square");
@@ -127,6 +140,11 @@ function draw() {
     for (projectile of projectiles) {
         projectileCell = document.querySelector(`.square[data-row="${projectile.y}"][data-col="${projectile.x}"]`)
         projectileCell.classList.add("bullet");
+    }
+
+    for (enemy of enemies) {
+        enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`)
+        enemyCell.classList.add("enemy");
     }
 
 }
