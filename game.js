@@ -16,6 +16,7 @@ let enemyTimer = null;
 let level = 0;
 let score = 0;
 let lives = 3;
+let canShoot = false;
 
 
 function initGame() {
@@ -29,6 +30,7 @@ function initGame() {
 }
 
 function startLevel() {
+    draw();
     clearInterval(enemyTimer);
     enemyCells = document.querySelectorAll(".enemy")
     enemyCells.forEach((cell)=>{
@@ -40,21 +42,29 @@ function startLevel() {
         }
     })
     enemies.splice(0, enemies.length);
+
+    projectiles.splice(0,projectiles.length);
+    for (projectile of projectiles){
+        clearInterval(projectile.timer);
+    }
+    const projectileCells = document.querySelectorAll(".bullet");
+    projectileCells.forEach((cell)=>cell.classList.remove("bullet"));
+
+
     levelDisplay = document.getElementById('level');
     levelDisplay.innerHTML = `level: ${level}`;
+
     createEnemies();
     if (INITIAL_SPEED - level * 100 > 500) {
-        
         initEnemies(INITIAL_SPEED - level * 100);
-        console.log("wtf");
-    } else if (INITIAL_SPEED - 600 - (level - 6) * 10 > MAX_SPEED) {
-        initEnemies(INITIAL_SPEED - 600 - (level - 6) * 10);
-        console.log(INITIAL_SPEED - 600 - (level - 6) * 10);
+    } else if (INITIAL_SPEED - 500 - (level - 6) * 10 > MAX_SPEED) {
+        initEnemies(INITIAL_SPEED - 500 - (level - 6) * 10);
     } else {
         initEnemies(MAX_SPEED);
-        console.log("???")
     }
+    
     draw();
+    canShoot = true;
 }
 
 function createEnemies() {
@@ -158,10 +168,11 @@ function updateEnemies() {
 function shoot(e) {
     if (e.keyCode === 32 && !gameOver) {
         var currentTime = new Date();
-        if (lastShot.getTime() / 1000 + COOLDOWN < currentTime.getTime() / 1000) {
+        if ((lastShot.getTime() / 1000 + COOLDOWN < currentTime.getTime() / 1000) && 
+                canShoot) {
             let newProjectile = { x: player_pos, y: BOARD_HEIGHT - 2 }
             projectiles.push(newProjectile);
-            let timer = setInterval(() => updateProjectile(newProjectile, timer), 50);
+            newProjectile.timer = setInterval(() => updateProjectile(newProjectile), 50);
             draw();
             lastShot = new Date();
         }
@@ -169,16 +180,16 @@ function shoot(e) {
 }
 
 
-function updateProjectile(projectile, timer) {
+function updateProjectile(projectile) {
     if (enemyAt(projectile.x, projectile.y)) {
-        clearInterval(timer);
+        clearInterval(projectile.timer);
         index = projectiles.indexOf(projectile);
         projectiles.splice(index, 1);
     } else if (projectile.y > 0) {
         projectile.y--;
     }
     else {
-        clearInterval(timer);
+        clearInterval(projectile.timer);
         index = projectiles.indexOf(projectile);
         projectiles.splice(index, 1);
     }
@@ -202,12 +213,8 @@ function enemyAt(x, y) {
                 enemies.splice(i, 1);
             }
         }
-
-
         scoreDisplay = document.getElementById('score');
         scoreDisplay.innerHTML = `score: ${score}`;
-
-        
 
         if (enemies.length === 0) {
             win();
@@ -310,26 +317,10 @@ function lose() {
 
 
 function win() {
-    setTimeout(() => { alert('Next wave is coming! Get ready! '); }, 0);
+    canShoot = false;
+    setTimeout(() => { alert('Next wave is coming! Get ready! '); }, 10);
     level++;
-
     startLevel();
-
-    // clearInterval(enemyTimer);  
-    // levelDisplay = document.getElementById('level');
-    // levelDisplay.innerHTML = `level: ${level}`;
-    // createEnemies();
-    // if (INITIAL_SPEED - level * 100 > 500) {
-        
-    //     initEnemies(INITIAL_SPEED - level * 100);
-    //     console.log("wtf");
-    // } else if (INITIAL_SPEED - 600 - (level - 6) * 10 > MAX_SPEED) {
-    //     initEnemies(INITIAL_SPEED - 600 - (level - 6) * 10);
-    //     console.log(INITIAL_SPEED - 600 - (level - 6) * 10);
-    // } else {
-    //     initEnemies(MAX_SPEED);
-    //     console.log("???")
-    // }
     
 }
 
