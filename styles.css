@@ -1,3 +1,18 @@
+#game {
+    margin:auto;
+    width:80%;
+}
+
+#score, #level {
+    width:50%;
+    font-size: 2rem;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+#level {
+    text-align: end;
+}
+
 .grid {
     /* width: 500px;
     height: 500px; */
@@ -30,11 +45,33 @@
     background-position: center;
 }
 
-.enemy {
-    background-image: url('Pics/ENEMY6.jpg'); 
-    /* background-color: red; */
+.enemy{
+    background-color: red;
     background-repeat: no-repeat;
     background-position: center;
     background-size: 30px 30px;
     
+}
+
+.enemy.type0{
+    background-image: url('Pics/ENEMY6.jpg'); 
+}
+
+.enemy.type1{
+    background-image: url('Pics/ENEMY4.jpg'); 
+}
+
+
+.enemy.type2{
+    background-image: url('Pics/ENEMY2.jpg'); 
+}
+
+.enemy.type3{
+    background-image: url('Pics/ENEMY3.jpg'); 
+}
+
+
+#game-header{
+    display:flex;
+    justify-content: space-between;
 }
