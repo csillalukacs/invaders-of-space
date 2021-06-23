@@ -20,6 +20,10 @@ let score = 0;
 let lives = 3;
 let canShoot = false;
 let enemyProjectileTimer = 0;
+let boss_alive = false;
+let countOfAllEnemies = 0;
+let ufoSpawnCount = 0;
+
 
 function initGame() {
     createBoardDivs();
@@ -33,6 +37,9 @@ function initGame() {
 
 function startLevel() {
     draw();
+
+    countOfAllEnemies = 0;
+    ufoSpawnCount = 0;
     clearInterval(enemyTimer);
     let enemyCells = document.querySelectorAll(".enemy")
     enemyCells.forEach((cell)=>{
@@ -68,14 +75,18 @@ function startLevel() {
     }
     draw();
 
-    enemyProjectileTimer = setInterval(enemyShoot, 500)
+
+    enemyProjectileTimer = setInterval(enemyShoot, 750)
     canShoot = true;
 }
 
 function createEnemies() {
     for (let i = 5; i < BOARD_WIDTH - 5; i++) {
         for (let j = 3; j < BOARD_HEIGHT - 3; j++) {
-            if ((j + 1) % 3 !== 0) { addEnemy(i, j, (4 - Math.floor(j / 3))) }
+            if ((j + 1) % 3 !== 0) {
+                addEnemy(i, j, (4 - Math.floor(j / 3)))
+                countOfAllEnemies ++;
+            }
         }
     }
  }
@@ -177,51 +188,57 @@ function shoot(e) {
 }
 
 function enemyShoot() {
-    let randEnemy = enemies[Math.floor(Math.random() * enemies.length)];
-    if (randEnemy.y < BOARD_HEIGHT - 5){
-        let newProjectile = { x: randEnemy.x, y: randEnemy.y + 1 }
-        enemyProjectiles.push(newProjectile);
-        newProjectile.timer = setInterval(() => updateEnemyProjectile(newProjectile), 100);
-        draw();
+    if (!gameOver){
+
+        let randEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+        if (randEnemy.y < BOARD_HEIGHT - 5){
+            let newProjectile = { x: randEnemy.x, y: randEnemy.y + 1 }
+            enemyProjectiles.push(newProjectile);
+            newProjectile.timer = setInterval(() => updateEnemyProjectile(newProjectile), 140);
+            draw();
+        }
     }
 }
 
 function updateProjectile(projectile) {
-    if (enemyAt(projectile.x, projectile.y)) {
-        clearInterval(projectile.timer);
-        let index = projectiles.indexOf(projectile);
-        projectiles.splice(index, 1);
-    } else if (projectile.y > 0) {
-        projectile.y--;
+    if (!gameOver) {
+        if (enemyAt(projectile.x, projectile.y)) {
+            clearInterval(projectile.timer);
+            let index = projectiles.indexOf(projectile);
+            projectiles.splice(index, 1);
+        } else if (projectile.y > 0) {
+            projectile.y--;
+        } else {
+            clearInterval(projectile.timer);
+            let index = projectiles.indexOf(projectile);
+            projectiles.splice(index, 1);
+        }
+        draw();
     }
-    else {
-        clearInterval(projectile.timer);
-        let index = projectiles.indexOf(projectile);
-        projectiles.splice(index, 1);
-    }
-    draw();
 }
 
 function updateEnemyProjectile(enemyProjectile) {
-    if (enemyAt(enemyProjectile.x, enemyProjectile.y, true)) {
-        clearInterval(enemyProjectile.timer);
-        let index = enemyProjectiles.indexOf(enemyProjectile);
-        enemyProjectiles.splice(index, 1);
-    } else if (enemyProjectile.y < BOARD_HEIGHT - 1) {
-        enemyProjectile.y++;
+    if (!gameOver) {
+        if (enemyAt(enemyProjectile.x, enemyProjectile.y, true)) {
+            clearInterval(enemyProjectile.timer);
+            let index = enemyProjectiles.indexOf(enemyProjectile);
+            enemyProjectiles.splice(index, 1);
+        } else if (enemyProjectile.y < BOARD_HEIGHT - 1) {
+            enemyProjectile.y++;
+        } else {
+            clearInterval(enemyProjectile.timer);
+            let index = enemyProjectiles.indexOf(enemyProjectile);
+            enemyProjectiles.splice(index, 1);
+        }
+        draw();
     }
-    else {
-        clearInterval(enemyProjectile.timer);
-        let index = enemyProjectiles.indexOf(enemyProjectile);
-        enemyProjectiles.splice(index, 1);
-    }
-    draw();
 }
 
 function enemyAt(x, y, targetIsPlayer=false) {
     let cell = document.querySelector(`.square[data-row="${y}"][data-col="${x}"]`);
     if (cell.classList.contains("enemy") && targetIsPlayer === false) {
         cell.classList.remove("enemy");
+
         for (let cl of cell.classList) {
             if (cl.includes("type")) {
                 cell.classList.remove(cl);
@@ -237,7 +254,15 @@ function enemyAt(x, y, targetIsPlayer=false) {
         let scoreDisplay = document.getElementById('score');
         scoreDisplay.innerHTML = `score: ${score}`;
 
-        if (enemies.length === 0) {
+        if (enemies.length / countOfAllEnemies * 100 < 75 && ufoSpawnCount === 0){
+            ufoSpawn();
+            ufoSpawnCount ++;
+        }
+        else if(enemies.length / countOfAllEnemies * 100 < 40 && ufoSpawnCount === 1){
+            ufoSpawn();
+            ufoSpawnCount ++;
+        }
+        else if (enemies.length === 0) {
             win();
         }
         return true;
@@ -253,6 +278,14 @@ function enemyAt(x, y, targetIsPlayer=false) {
             }
             return true;
         }
+    }
+    if (cell.classList.contains("boss")) {
+        cell.classList.remove("boss");
+        boss_alive = false;
+        score += 300;
+        let scoreDisplay = document.getElementById('score');
+        scoreDisplay.innerHTML = `score: ${score}`;
+        return true;
     }
 }
 
@@ -340,7 +373,7 @@ function drawEnemies() {
     });
 
     for (let enemy of enemies) {
-        let enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`)
+        let enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`);
         enemyCell.classList.add("enemy");
         enemyCell.classList.add(`type${enemy.type}`);
     }
@@ -358,5 +391,35 @@ function win() {
     level++;
     startLevel();
 }
+
+function ufoSpawn () {
+    boss_alive = true;
+    let spawnPoint = Math.floor(Math.random() * 2);
+    let direction = 1;
+    if (spawnPoint === 1) {
+        spawnPoint = BOARD_WIDTH - 1;
+        direction = -1;
+    }
+    let bossLocation = spawnPoint - direction;
+    let boss_move = setInterval(function(){
+        if (!gameOver) {
+            bossLocation += direction;
+            if (bossLocation === BOARD_WIDTH || bossLocation === -1 || boss_alive === false) {
+                let boss = document.querySelector(`.square[data-row="${0}"][data-col="${bossLocation - direction}"]`);
+                boss.classList.remove('boss');
+                clearInterval(boss_move);
+
+            }
+            if (boss_alive === true) {
+                let newBoss = document.querySelector(`.square[data-row="${0}"][data-col="${bossLocation}"]`);
+                newBoss.classList.toggle('boss');
+                let boss = document.querySelector(`.square[data-row="${0}"][data-col="${bossLocation - direction}"]`);
+                boss.classList.toggle('boss');
+            }
+        }
+    }, 400);
+}
+
+
 
 initGame();

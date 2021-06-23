@@ -81,3 +81,9 @@
     display:flex;
     justify-content: space-between;
 }
+
+.boss {
+    background-image: url('Pics/ENEMY_BOSS_2.png');
+    background-repeat: no-repeat;
+    background-position: center;
+}
