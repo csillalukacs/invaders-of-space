@@ -6,7 +6,6 @@
 #score, #level, #lives {
     width:50%;
     font-size: 2rem;
-    /* font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; */
 }
 
 #lives{
@@ -18,61 +17,63 @@
 }
 
 .grid {
-    /* width: 500px;
-    height: 500px; */
     border: black solid 1px;
     display: flex;
     flex-wrap: wrap;
     margin:auto;
-    /* background-color:black; */
+    background-color: black;
 }
 
 .grid div {
-    /* width: 25px;
-    height: 25px; */
-    border: white solid 3px;
+    border: black solid 3px;
     border-collapse: collapse;
     box-sizing: border-box;
-   
+
 }
 
 
 
 .square.player {
-    background-image: url('Pics/PLAYER_ICON.jpg');
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-.bullet {
-    background-image: url('Pics/PLAYER_PROJECTILE.jpg');
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-.enemy{
-    background-color: red;
+    background-image: url('Pics/PLAYER_ICON_2.png');
     background-repeat: no-repeat;
     background-position: center;
     background-size: 30px 30px;
-    
 }
 
-.enemy.type0{
-    background-image: url('Pics/ENEMY6.jpg'); 
+.bullet {
+    background-image: url('Pics/PLAYER_PROJECTILE_2.png');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.enemy_bullet {
+    background-image: url('Pics/ENEMY_PROJECTILE_2.png');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+
+.enemy{
+    background-repeat: no-repeat;
+    background-position: center;
+
+}
+
+.enemy.enemy_bullet{
+    background-color: yellow;
 }
 
 .enemy.type1{
-    background-image: url('Pics/ENEMY4.jpg'); 
+    background-image: url('Pics/ENEMY2_2.png');
 }
 
 
 .enemy.type2{
-    background-image: url('Pics/ENEMY2.jpg'); 
+    background-image: url('Pics/ENEMY4_4.png');
 }
 
 .enemy.type3{
-    background-image: url('Pics/ENEMY3.jpg'); 
+    background-image: url('Pics/ENEMY5_5.png');
 }
 
 

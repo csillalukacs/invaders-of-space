@@ -5,10 +5,12 @@ const COOLDOWN = 0.2;
 const SCORE_MULTIPLIER = 0.25;
 const INITIAL_SPEED = 1000;
 const MAX_SPEED = 400;
-
-let player_pos = Math.floor(BOARD_WIDTH / 2);
 const projectiles = [];
 const enemies = [];
+const enemyProjectiles =[];
+
+
+let player_pos = Math.floor(BOARD_WIDTH / 2);
 let lastShot = new Date();
 let direction = 1;
 let gameOver = false;
@@ -17,14 +19,14 @@ let level = 0;
 let score = 0;
 let lives = 3;
 let canShoot = false;
-
+let enemyProjectileTimer = 0;
 
 function initGame() {
     createBoardDivs();
     const body = document.querySelector("body");
     body.addEventListener('keydown', movePlayer);
     body.addEventListener('keypress', shoot);
-    livesDisplay = document.getElementById('lives');
+    let livesDisplay = document.getElementById('lives');
     livesDisplay.innerHTML = `lives: ${lives}`;
     startLevel();
 }
@@ -32,26 +34,28 @@ function initGame() {
 function startLevel() {
     draw();
     clearInterval(enemyTimer);
-    enemyCells = document.querySelectorAll(".enemy")
+    let enemyCells = document.querySelectorAll(".enemy")
     enemyCells.forEach((cell)=>{
         cell.classList.remove("enemy");
-        for (cl of cell.classList){
+        for (let cl of cell.classList){
             if (cl.includes("type")){
                 cell.classList.remove(cl);
             }
         }
     })
     enemies.splice(0, enemies.length);
+    clearInterval(enemyProjectileTimer);
+    enemyProjectiles.splice(0,enemyProjectiles.length)
 
-    projectiles.splice(0,projectiles.length);
-    for (projectile of projectiles){
+    for (let projectile of projectiles){
         clearInterval(projectile.timer);
     }
+    projectiles.splice(0,projectiles.length);
     const projectileCells = document.querySelectorAll(".bullet");
     projectileCells.forEach((cell)=>cell.classList.remove("bullet"));
 
 
-    levelDisplay = document.getElementById('level');
+    let levelDisplay = document.getElementById('level');
     levelDisplay.innerHTML = `level: ${level}`;
 
     createEnemies();
@@ -62,34 +66,28 @@ function startLevel() {
     } else {
         initEnemies(MAX_SPEED);
     }
-    
     draw();
+
+    enemyProjectileTimer = setInterval(enemyShoot, 500)
     canShoot = true;
 }
 
 function createEnemies() {
-    type = 0;
     for (let i = 5; i < BOARD_WIDTH - 5; i++) {
         for (let j = 3; j < BOARD_HEIGHT - 3; j++) {
             if ((j + 1) % 3 !== 0) { addEnemy(i, j, (4 - Math.floor(j / 3))) }
         }
     }
-    // for (let i = 3; i < BOARD_WIDTH - 3; i++) {
-    //     addEnemy(i, 5);
-    // }
-}
-
+ }
 
 function addEnemy(x, y, type) {
     let newEnemy = { x: x, y: y, type: type };
     enemies.push(newEnemy);
 }
 
-
 function initEnemies(enemyDelay) {
     enemyTimer = setInterval(updateEnemies, enemyDelay);
 }
-
 
 function getFirstEnemyX() {
     let minX = BOARD_WIDTH;
@@ -100,7 +98,6 @@ function getFirstEnemyX() {
     }
     return minX;
 }
-
 
 function getLastEnemyX() {
     let maxX = 0;
@@ -150,7 +147,7 @@ function updateEnemies() {
             direction = (distanceFromRight === 0) ? -1 : 1;
             if (distanceFromBottom - 1 === 0) {
                 lives--;
-                livesDisplay = document.getElementById('lives');
+                let livesDisplay = document.getElementById('lives');
                 livesDisplay.innerHTML = `lives: ${lives}`;
 
                 if (lives === 0){ 
@@ -164,12 +161,12 @@ function updateEnemies() {
     }
 }
 
-
 function shoot(e) {
     if (e.keyCode === 32 && !gameOver) {
-        var currentTime = new Date();
-        if ((lastShot.getTime() / 1000 + COOLDOWN < currentTime.getTime() / 1000) && 
-                canShoot) {
+
+        console.log(enemies);
+        let currentTime = new Date();
+        if ((lastShot.getTime() / 1000 + COOLDOWN < currentTime.getTime() / 1000) && canShoot) {
             let newProjectile = { x: player_pos, y: BOARD_HEIGHT - 2 }
             projectiles.push(newProjectile);
             newProjectile.timer = setInterval(() => updateProjectile(newProjectile), 50);
@@ -179,29 +176,53 @@ function shoot(e) {
     }
 }
 
+function enemyShoot() {
+    let randEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+    if (randEnemy.y < BOARD_HEIGHT - 5){
+        let newProjectile = { x: randEnemy.x, y: randEnemy.y + 1 }
+        enemyProjectiles.push(newProjectile);
+        newProjectile.timer = setInterval(() => updateEnemyProjectile(newProjectile), 100);
+        draw();
+    }
+}
 
 function updateProjectile(projectile) {
     if (enemyAt(projectile.x, projectile.y)) {
         clearInterval(projectile.timer);
-        index = projectiles.indexOf(projectile);
+        let index = projectiles.indexOf(projectile);
         projectiles.splice(index, 1);
     } else if (projectile.y > 0) {
         projectile.y--;
     }
     else {
         clearInterval(projectile.timer);
-        index = projectiles.indexOf(projectile);
+        let index = projectiles.indexOf(projectile);
         projectiles.splice(index, 1);
     }
     draw();
 }
 
+function updateEnemyProjectile(enemyProjectile) {
+    if (enemyAt(enemyProjectile.x, enemyProjectile.y, true)) {
+        clearInterval(enemyProjectile.timer);
+        let index = enemyProjectiles.indexOf(enemyProjectile);
+        enemyProjectiles.splice(index, 1);
+    } else if (enemyProjectile.y < BOARD_HEIGHT - 1) {
+        enemyProjectile.y++;
+    }
+    else {
+        clearInterval(enemyProjectile.timer);
+        let index = enemyProjectiles.indexOf(enemyProjectile);
+        enemyProjectiles.splice(index, 1);
+    }
+    draw();
+}
 
-function enemyAt(x, y) {
-    cell = document.querySelector(`.square[data-row="${y}"][data-col="${x}"]`);
-    if (cell.classList.contains("enemy")) {
+function enemyAt(x, y, targetIsPlayer=false) {
+    let cell = document.querySelector(`.square[data-row="${y}"][data-col="${x}"]`);
+    if (cell.classList.contains("enemy") && targetIsPlayer === false) {
         cell.classList.remove("enemy");
-        for (cl of cell.classList) {
+        for (let cl of cell.classList) {
             if (cl.includes("type")) {
                 cell.classList.remove(cl);
             }
@@ -213,7 +234,7 @@ function enemyAt(x, y) {
                 enemies.splice(i, 1);
             }
         }
-        scoreDisplay = document.getElementById('score');
+        let scoreDisplay = document.getElementById('score');
         scoreDisplay.innerHTML = `score: ${score}`;
 
         if (enemies.length === 0) {
@@ -221,9 +242,20 @@ function enemyAt(x, y) {
         }
         return true;
     }
+    else if (y === BOARD_HEIGHT-1){
+        let target = document.querySelector(`.square[data-row="${y}"][data-col="${x}"]`);
+        if (target.classList.contains('player')){
+            lives -= 1;
+            let livesDisplay = document.getElementById('lives');
+            livesDisplay.innerHTML = `lives: ${lives}`;
+            if (lives === 0){
+                lose();
+            }
+            return true;
+        }
+    }
 }
 
-// bal = 37, jobb = 39
 function movePlayer(e) {
     if (e.keyCode === 37 && !gameOver) {
         moveLeft();
@@ -284,9 +316,15 @@ function draw() {
     let cells = document.querySelectorAll(".square");
     cells.forEach((cell) => { cell.classList.remove("bullet") });
 
-    for (projectile of projectiles) {
-        projectileCell = document.querySelector(`.square[data-row="${projectile.y}"][data-col="${projectile.x}"]`)
+    for (let projectile of projectiles) {
+        let projectileCell = document.querySelector(`.square[data-row="${projectile.y}"][data-col="${projectile.x}"]`)
         projectileCell.classList.add("bullet");
+    }
+    cells.forEach((cell) => { cell.classList.remove("enemy_bullet") });
+
+    for (let enemyProjectile of enemyProjectiles) {
+        let projectileCell = document.querySelector(`.square[data-row="${enemyProjectile.y}"][data-col="${enemyProjectile.x}"]`)
+        projectileCell.classList.add("enemy_bullet");
     }
 }
 
@@ -294,16 +332,15 @@ function drawEnemies() {
     let enemyCells = document.querySelectorAll(".enemy");
     enemyCells.forEach((cell) => {
         cell.classList.remove("enemy");
-        for (cl of cell.classList) {
+        for (let cl of cell.classList) {
             if (cl.includes("type")) {
                 cell.classList.remove(cl);
             }
         }
     });
 
-    for (enemy of enemies) {
-
-        enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`)
+    for (let enemy of enemies) {
+        let enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`)
         enemyCell.classList.add("enemy");
         enemyCell.classList.add(`type${enemy.type}`);
     }
@@ -315,14 +352,11 @@ function lose() {
 
 }
 
-
 function win() {
     canShoot = false;
     setTimeout(() => { alert('Next wave is coming! Get ready! '); }, 10);
     level++;
     startLevel();
-    
 }
-
 
 initGame();
