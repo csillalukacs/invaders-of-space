@@ -1,3 +1,18 @@
+
+body {
+    background-color: black;
+}
+
+h1 {
+    font-size: 60px;
+    text-align: center;
+}
+
+*{
+    color:lime;
+}
+
+
 #game {
     margin:auto;
     width:80%;
@@ -17,11 +32,12 @@
 }
 
 .grid {
-    border: black solid 1px;
+    border: lime solid 1px;
     display: flex;
     flex-wrap: wrap;
     margin:auto;
     background-color: black;
+    
 }
 
 .grid div {

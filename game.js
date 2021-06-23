@@ -81,8 +81,8 @@ function startLevel() {
 }
 
 function createEnemies() {
-    for (let i = 5; i < BOARD_WIDTH - 5; i++) {
-        for (let j = 3; j < BOARD_HEIGHT - 3; j++) {
+    for (let i = 3; i < BOARD_WIDTH - 5; i++) {
+        for (let j = 2; j < BOARD_HEIGHT - 3; j++) {
             if ((j + 1) % 3 !== 0) {
                 addEnemy(i, j, (4 - Math.floor(j / 3)))
                 countOfAllEnemies ++;
@@ -252,7 +252,7 @@ function enemyAt(x, y, targetIsPlayer=false) {
             }
         }
         let scoreDisplay = document.getElementById('score');
-        scoreDisplay.innerHTML = `score: ${score}`;
+        scoreDisplay.innerHTML = `score: ${Math.floor(score)}`;
 
         if (enemies.length / countOfAllEnemies * 100 < 75 && ufoSpawnCount === 0){
             ufoSpawn();
@@ -284,7 +284,7 @@ function enemyAt(x, y, targetIsPlayer=false) {
         boss_alive = false;
         score += 300;
         let scoreDisplay = document.getElementById('score');
-        scoreDisplay.innerHTML = `score: ${score}`;
+        scoreDisplay.innerHTML = `score: ${Math.floor(score)}`;
         return true;
     }
 }
