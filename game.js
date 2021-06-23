@@ -17,6 +17,7 @@ let level = 0;
 let score = 0;
 let lives = 3;
 let canShoot = false;
+let boss_alive = false;
 
 
 function initGame() {
@@ -27,6 +28,7 @@ function initGame() {
     livesDisplay = document.getElementById('lives');
     livesDisplay.innerHTML = `lives: ${lives}`;
     startLevel();
+    ufoSpawn();
 }
 
 function startLevel() {
@@ -221,6 +223,14 @@ function enemyAt(x, y) {
         }
         return true;
     }
+    if (cell.classList.contains("boss")) {
+        cell.classList.remove("boss");
+        boss_alive = false;
+        score += 300;
+        scoreDisplay = document.getElementById('score');
+        scoreDisplay.innerHTML = `score: ${score}`;
+        return true;
+    }
 }
 
 // bal = 37, jobb = 39
@@ -303,7 +313,7 @@ function drawEnemies() {
 
     for (enemy of enemies) {
 
-        enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`)
+        enemyCell = document.querySelector(`.square[data-row="${enemy.y}"][data-col="${enemy.x}"]`);
         enemyCell.classList.add("enemy");
         enemyCell.classList.add(`type${enemy.type}`);
     }
@@ -323,6 +333,32 @@ function win() {
     startLevel();
     
 }
+
+function ufoSpawn () {
+    boss_alive = true;
+    let spawnPoint = Math.floor(Math.random() * 2);
+    let direction = 1;
+    if (spawnPoint === 1) {
+        spawnPoint = BOARD_WIDTH - 1;
+        direction = -1;
+    }
+    let bossLocation = spawnPoint - direction;
+    var boss_move = setInterval(function(){
+        bossLocation += direction;
+        if (bossLocation === BOARD_WIDTH || bossLocation === -1 || boss_alive === false) {
+            let boss = document.querySelector(`.square[data-row="${0}"][data-col="${bossLocation-direction}"]`);
+            boss.classList.remove('boss');
+            clearInterval(boss_move);
+        }
+        if (boss_alive === true) {
+            let newBoss = document.querySelector(`.square[data-row="${0}"][data-col="${bossLocation}"]`);
+            newBoss.classList.toggle('boss');
+            let boss = document.querySelector(`.square[data-row="${0}"][data-col="${bossLocation-direction}"]`);
+            boss.classList.toggle('boss');
+        }
+    }, 400);
+}
+
 
 
 initGame();
