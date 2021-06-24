@@ -174,8 +174,6 @@ function updateEnemies() {
 
 function shoot(e) {
     if (e.keyCode === 32 && !gameOver) {
-
-        console.log(enemies);
         let currentTime = new Date();
         if ((lastShot.getTime() / 1000 + COOLDOWN < currentTime.getTime() / 1000) && canShoot) {
             let newProjectile = { x: player_pos, y: BOARD_HEIGHT - 2 }
