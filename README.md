@@ -1,3 +1,8 @@
+Try it here:
+https://invaders-of-space.netlify.app/
+
+![image](https://user-images.githubusercontent.com/52175603/151332328-b60f0aac-847a-48b7-9ee2-b7e35139a04f.png)
+
 # Freestyle JavaScript Game
 
 ## Story
